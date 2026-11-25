@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Downloader</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 20px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 560px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    padding: 40px 36px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  h1 { color: #fff; text-align: center; font-size: 28px; margin-bottom: 8px; }
+
+  .subtitle {
+    color: rgba(255, 255, 255, 0.65);
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+
+  form { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  #url {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(0, 0, 0, 0.28);
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  #url::placeholder { color: rgba(255, 255, 255, 0.4); }
+  #url:focus { border-color: #e94560; box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.25); }
+
+  #btn {
+    padding: 14px 28px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #e94560, #f2709c);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  #btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(233, 69, 96, 0.45);
+  }
+  #btn:disabled { opacity: .55; cursor: not-allowed; }
+
+  .progress-wrap { margin-top: 24px; }
+  .progress-track {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+    border-radius: 999px;
+    transition: width .3s ease;
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .status { margin-top: 18px; font-size: 14px; min-height: 20px; color: rgba(255,255,255,0.85); }
+  .status.error { color: #ff6b6b; }
+  .status.ok { color: #4ade80; }
+
+  #download-link {
+    display: block;
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 600;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  #download-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4);
+  }
+
+  .hint { margin-top: 14px; font-size: 12px; color: rgba(255,255,255,0.55); line-height: 1.5; }
+  .hint b { color: rgba(255,255,255,0.8); }
+
+  #cookies {
+    width: 100%;
+    margin-top: 8px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(0,0,0,0.28);
+    color: rgba(255,255,255,0.75);
+    font-size: 12px;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+  }
+  #cookies::placeholder { color: rgba(255,255,255,0.35); }
+  #cookies:focus { border-color: #e94560; box-shadow: 0 0 0 3px rgba(233,69,96,0.2); }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>🎬 Video Downloader</h1>
+    <p class="subtitle">YouTube · TikTok · ok.ru · vk.ru සහ තවත් වෙබ් අඩවි ගණනාවක වීඩියෝ බාගත කරන්න</p>
+
+    <form id="form">
+      <input id="url" type="text" placeholder="වීඩියෝ URL මෙත්න ඇතුළත් කරන්න..." autocomplete="off" required>
+      <button id="btn" type="submit">Download</button>
+    </form>
+
+    <p class="hint">සමහර අඩවි (උදා: YouTube) ට bot-check හරහා ගැටලුවක් ඇති නම්, <b>Cookies</b> එක මෙත්න ඇතුළත් කරන්න (අවශ්‍ය නැති නම් හිස් තබන්න):</p>
+    <textarea id="cookies" rows="2" placeholder="name=value; name2=value2  (හෝ Netscape cookie.txt හරහා ලබාගත් දේ)"></textarea>
+
+    <div id="progress-wrap" class="hidden">
+      <div class="progress-track"><div id="progress-fill"></div></div>
+      <div class="progress-meta">
+        <span id="percent">0%</span>
+        <span id="stage"></span>
+      </div>
+    </div>
+
+    <p id="message" class="status"></p>
+    <a id="download-link" class="hidden" href="#" download>⬇ වීඩියෝ බාගත කරන්න</a>
+  </div>
+
+<script>
+  const form    = document.getElementById('form');
+  const urlInput = document.getElementById('url');
+  const btn     = document.getElementById('btn');
+  const wrap    = document.getElementById('progress-wrap');
+  const fill    = document.getElementById('progress-fill');
+  const percent = document.getElementById('percent');
+  const stage   = document.getElementById('stage');
+  const message = document.getElementById('message');
+  const link    = document.getElementById('download-link');
+
+  let pollTimer = null;
+
+  const STAGES = {
+    queued:      'පිළිගැනීමට දැමීම...',
+    downloading: 'බාගත කිරීම සිදුවේ...',
+    processing:  'දෘශ්‍ය-ශ්‍රව්‍ය ඒකාබද්ධ කරනනි...',
+    completed:   'සම්පූර්ණයි!'
+  };
+
+  const cookiesInput = document.getElementById('cookies');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+
+    const url = urlInput.value.trim();
+    if (!url) return;
+
+    setBusy(true);
+    resetResult();
+    message.className = 'status';
+    message.textContent = 'බාගත කිරීම ආරම්භ කරනනි...';
+
+    try {
+      const res = await fetch('/api/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, cookies: cookiesInput.value.trim() })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'ප්‍රශ්නයක් ඇත');
+      wrap.classList.remove('hidden');
+      startPolling(data.job_id);
+    } catch (err) {
+      showError(err.message);
+      setBusy(false);
+    }
+  });
+
+  function startPolling(jobId) {
+    pollTimer = setInterval(async () => {
+      try {
+        const res = await fetch('/api/status/' + jobId);
+        if (!res.ok) throw new Error('Status ලබාගත නොහැක');
+        const d = await res.json();
+
+        fill.style.width = (d.progress || 0) + '%';
+        percent.textContent = Math.round(d.progress || 0) + '%';
+
+        if (d.status === 'completed') {
+          stage.textContent = STAGES.completed;
+          message.className = 'status ok';
+          message.textContent = 'බාගත කිරීම සම්පූර්ණ විය' + (d.title ? ' — "' + d.title + '"' : '') + '.';
+          link.href = '/api/file/' + jobId;
+          link.classList.remove('hidden');
+          finish();
+        } else if (d.status === 'error') {
+          stage.textContent = 'අසාර්ථකයි';
+          showError(d.error || 'බාගත කිරීම අසාර්ථක විය');
+          finish();
+        } else {
+          stage.textContent = STAGES[d.status] || 'සිදුවේ...';
+        }
+      } catch (err) {
+        showError(err.message);
+        finish();
+      }
+    }, 1000);
+  }
+
+  function finish() {
+    clearInterval(pollTimer);
+    pollTimer = null;
+    setBusy(false);
+  }
+
+  function setBusy(busy) {
+    btn.disabled = busy;
+    btn.textContent = busy ? 'සිදුවේ...' : 'Download';
+  }
+
+  function resetResult() {
+    wrap.classList.add('hidden');
+    link.classList.add('hidden');
+    link.href = '#';
+    message.textContent = '';
+    fill.style.width = '0%';
+    percent.textContent = '0%';
+    stage.textContent = '';
+  }
+
+  function showError(text) {
+    message.className = 'status error';
+    message.textContent = '⚠ ' + text;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# Web framework (serves the API + frontend)
+Flask==3.0.3
+
+# Production WSGI server (used when running on Render.com / live deployment)
+gunicorn==23.0.0
+
+# Video download engine — left unpinned so Docker/Render builds always pull the
+# latest version. yt-dlp releases extractor fixes for sites like YouTube,
+# TikTok, ok.ru and vk.ru frequently, so staying current keeps downloads working.
+yt-dlp
